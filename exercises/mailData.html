@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Mail Data Set</title>
+    <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="/flink-training/css/main.css">
+    <link rel="canonical" href="http://dataartisans.github.io/flink-training/exercises/mailData.html">
+    <link rel="alternate" type="application/rss+xml" title="Apache Flink Training" href="http://dataartisans.github.io/flink-training/feed.xml" />
+  </head>
+
+  <body>
+    <nav class="navbar navbar-default">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/flink-training/index.html">Apache Flink Training<sup>&reg;</sup></a>
+      
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="/flink-training/setup.html">Setup</a></li>
+        <li><a href="/flink-training/localExec.html">Local Execution</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Exercises<span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/flink-training/exercises/">Overview</a></li>
+            <li class="divider"></li>
+            <li><a href="/flink-training/exercises/mailCount.html">DataSet API: Mail Count</a></li>
+            <li><a href="/flink-training/exercises/replyGraph.html">DataSet API: Reply Graph Extraction</a></li>
+            <li><a href="/flink-training/exercises/tfIdf.html">DataSet API: TF-IDF</a></li>
+            <li class="divider"></li>
+            <li><a href="/flink-training/exercises/memberOTM.html">Table API: Member of the Month</a></li>
+            <li class="divider"></li>
+            <li><a href="/flink-training/exercises/mailData.html">Mail Data Set</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Resources<span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/flink-training/devResources/docLinks.html">Flink Documentation</a></li>
+            <li><a href="/flink-training/devResources/trainingSlides.html">Training Slides</a></li>
+            
+            <!--
+            <li class="divider"></li>
+            <li><a href="/flink-training/devResources/bestPractices.html">Best Practices</a></li>
+            <li><a href="/flink-training/devResources/tuning.html">Tuning</a></li>
+            <li><a href="/flink-training/devResources/exceptionFaq.html">Exception FAQ</a></li>
+            -->
+          </ul>
+        </li>
+      </ul>
+      <!--
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Link</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Action</a></li>
+            <li><a href="#">Another action</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+          </ul>
+        </li>
+      </ul>
+    -->
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Mail Data Set</h1>
+  </header>
+
+  <article class="post-content">
+    <p>The Mail Data Set is derived from the public archives of Apache Flink’s developer mailing list (dev@flink.apache.org). All communication within Apache projects is happening on or is mirrored to mailing lists. Most of these lists are public and archived. The archives of each public mailing list, such as Apache Flink’s developer mailing list, are online available as Mbox files for each individual month. For example, the archived mails of dev@flink.apache.org for December 2014 are available under the URL <a href="http://mail-archives.apache.org/mod_mbox/flink-dev/201412.mbox">http://mail-archives.apache.org/mod_mbox/flink-dev/201412.mbox</a>. </p>
+
+<h3 id="build-the-mboxparser-flink-program">1. Build the MBoxParser Flink program</h3>
+
+<p>We provide a Flink program called <code>MBoxParser</code>, which reads Mbox files of Flink’s developer Apache mailing list archive and converts the mails into a structured format that can be easily processed. To build the program JAR file run the following commands:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">git clone https://github.com/dataArtisans/flink-training.git
+<span class="nb">cd </span>flink-training/flink-exercises
+mvn clean package</code></pre></div>
+
+<p>Afterwards the program’s JAR file is located at <code>./target/flink-exercises-0.1-MBoxParser.jar</code>.</p>
+
+<h3 id="download-the-raw-mail-archive-data">2. Download the raw mail archive data</h3>
+
+<p>Download a few Mbox files of Flink’s mailing list archive and store them into a folder. On Linux or OSX you can use the following commands to do that:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">mkdir ./flink-dev-archive
+<span class="nb">cd </span>flink-dev-archive
+wget http://mail-archives.apache.org/mod_mbox/flink-dev/201406.mbox
+wget http://mail-archives.apache.org/mod_mbox/flink-dev/201407.mbox
+wget http://mail-archives.apache.org/mod_mbox/flink-dev/201408.mbox
+...</code></pre></div>
+
+<h4 id="mbox-data-format">Mbox data format</h4>
+
+<p>The <a href="http://en.wikipedia.org/wiki/Mbox">Mbox mail archive format</a> is a text-based file format which stores a sequence of mails. A mail is encoded in multiple lines. The first line of a mail starts with “<code>From </code>” and continues with the mailer daemon and a time stamp. The following lines are formatted as key-value pairs as for example “<code>Subject: Re: Podling name search initiated</code>” containing information such as subject, sender, and reply-to of the mail. An empty line indicates the end of the key-value section and the start of the email body. After the last line of the mail body, the next mail starts with a line that begins again with “<code>From </code>”.</p>
+
+<p>This format is not very well suited for immediate analysis and requires a bit of cleansing and formatting.</p>
+
+<h3 id="generate-the-mail-data-set">3. Generate the Mail Data Set</h3>
+
+<p>The program can be executed on a locally running Flink instance (<a href="/flink-training/setup.html">see setup instructions</a>) using Flink’s CLI client with the following commands</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd</span> /path/to/your/flink-installation
+./bin/start-local.sh
+./bin/flink run /path/to/flink-exercises-0.1-MBoxParser.jar   <span class="se">\ </span>
+            --input /path/to/flink-dev-archive                <span class="se">\</span>
+            --output /your/output/mail-data</code></pre></div>
+
+<p>The extracted Mail Data Set will be located in the <code>/your/output/mail-data</code> folder. </p>
+
+<h4 id="data-format-of-the-mail-data-set">Data format of the Mail Data Set</h4>
+
+<p>The Mail Data Set is generated in a text format. Email records are separated by a “<code>##//##</code>” char sequence.
+Each mail record has six fields:</p>
+
+<pre><code>MessageID  : String // a unique message id
+Timestamp  : String // the mail deamon timestamp
+Sender     : String // the sender of the mail
+Subject    : String // the subject of the mail
+Body       : String // the body of the mail (contains linebrakes)
+Replied-To : String // the messageID of the mail this mail was replied to 
+                    //   (may be “null”)
+</code></pre>
+
+<p>which are separated by a “<code>#|#</code>” char sequence.</p>
+
+<p>Hence, the format of the file is </p>
+
+<pre><code>&lt;MessageID&gt;#|#&lt;Timestamp&gt;#|#&lt;Sender&gt;#|#&lt;Subject&gt;#|#&lt;Body&gt;#|#&lt;RepliedTo&gt;##//##&lt;MessageId&gt;#|#TimeStamp&gt;#|#...
+</code></pre>
+
+<h3 id="read-the-mail-data-set-in-a-flink-program">4. Read the Mail Data Set in a Flink program</h3>
+
+<p>The Mail Data Set can be read using Flink’s <code>CsvInputFormat</code>:</p>
+
+<h4 id="java">Java</h4>
+
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// get an ExecutionEnvironment</span>
+<span class="n">ExecutionEnvironment</span> <span class="n">env</span> <span class="o">=</span> <span class="n">ExecutionEnvironment</span><span class="o">.</span><span class="na">getExecutionEnvironment</span><span class="o">();</span>
+
+<span class="c1">// read all fields</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple6</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">mails</span> <span class="o">=</span>
+  <span class="n">env</span><span class="o">.</span><span class="na">readCsvFile</span><span class="o">(</span><span class="s">&quot;/your/output/mail-data&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">lineDelimiter</span><span class="o">(</span><span class="s">&quot;##//##&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">fieldDelimiter</span><span class="o">(</span><span class="s">&quot;#|#&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">types</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+           <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+
+<span class="c1">// read sender and body fields</span>
+<span class="n">DataSet</span><span class="o">&lt;</span><span class="n">Tuple2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">senderBody</span> <span class="o">=</span>
+  <span class="n">env</span><span class="o">.</span><span class="na">readCsvFile</span><span class="o">(</span><span class="s">&quot;/your/output/mail-data&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">lineDelimiter</span><span class="o">(</span><span class="s">&quot;##//##&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">fieldDelimiter</span><span class="o">(</span><span class="s">&quot;#|#&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">includeFields</span><span class="o">(</span><span class="s">&quot;00101&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">types</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">);</span></code></pre></div>
+
+<h4 id="scala">Scala</h4>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// get an ExecutionEnvironment</span>
+<span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">ExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
+
+<span class="c1">// read all fields</span>
+<span class="k">val</span> <span class="n">mails</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">readCsvFile</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">String</span>, <span class="kt">String</span>, <span class="kt">String</span>, <span class="kt">String</span>, <span class="kt">String</span><span class="o">)](</span>
+    <span class="s">&quot;/your/output/mail-data&quot;</span><span class="o">,</span>
+    <span class="n">lineDelimiter</span> <span class="k">=</span> <span class="s">&quot;##//##&quot;</span><span class="o">,</span>
+    <span class="n">fieldDelimiter</span> <span class="k">=</span> <span class="s">&quot;#|#&quot;</span><span class="o">,</span>
+  <span class="o">)</span>
+
+<span class="c1">// read sender and body fields</span>
+<span class="k">val</span> <span class="n">senderBody</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">readCsvFile</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">)](</span>
+    <span class="s">&quot;/your/output/mail-data&quot;</span><span class="o">,</span>
+    <span class="n">lineDelimiter</span> <span class="k">=</span> <span class="s">&quot;##//##&quot;</span><span class="o">,</span>
+    <span class="n">fieldDelimiter</span> <span class="k">=</span> <span class="s">&quot;#|#&quot;</span><span class="o">,</span>
+    <span class="n">includedFields</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span><span class="mi">4</span><span class="o">)</span>
+  <span class="o">)</span></code></pre></div>
+
+  </article>
+
+</div>
+
+      
+        <!-- Footer -->
+        <div class="site-footer text-center">
+          <p>Copyright © 2015 <a href="http://data-artisans.com">dataArtisans</a>. All Rights Reserved.</p>
+
+          <p>Apache Flink, Apache, and the Apache feather logo are trademarks of The Apache Software Foundation.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    
+  </body>
+</html>
